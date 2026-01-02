@@ -1,0 +1,80 @@
+{% extends "tasks/base.html" %}
+
+{% block content %}
+
+<h2>Add New Task</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    <p>
+        <label>Title:</label><br>
+        <input type="text" name="title" required>
+    </p>
+
+    <p>
+        <label>Description:</label><br>
+        <textarea name="description"></textarea>
+    </p>
+
+    <p>
+        <label>Reminder Time:</label><br>
+        <input type="datetime-local" name="reminder_time">
+    </p>
+
+    <button type="submit">Add Task</button>
+</form>
+
+<hr>
+
+<h2>My Tasks</h2>
+
+<ul>
+{% for task in tasks %}
+    <li 
+        data-reminder-time="{{ task.reminder_time|date:'Y-m-d H:i:s' }}"
+        data-task-title="{{ task.title }}"
+        {% if task.is_completed %}style="text-decoration: line-through;"{% endif %}
+    >
+
+        <strong>{{ task.title }}</strong><br>
+        {{ task.description }}<br>
+
+        {% if task.reminder_time %}
+            ⏰ {{ task.reminder_time }}
+        {% endif %}
+        <br>
+
+        <a href="{% url 'task_update' task.id %}">Edit</a> |
+        <a href="{% url 'task_delete' task.id %}">Delete</a> |
+        <a href="{% url 'toggle_complete' task.id %}">
+            {% if task.is_completed %}Mark Pending{% else %}Mark Complete{% endif %}
+        </a>
+
+    </li>
+    <hr>
+{% empty %}
+    <p>No tasks yet.</p>
+{% endfor %}
+</ul>
+
+<script>
+function checkReminders() {
+    const tasks = document.querySelectorAll('[data-reminder-time]');
+    const now = new Date();
+
+    tasks.forEach(task => {
+        const reminder = task.getAttribute('data-reminder-time');
+        if (!reminder) return;
+
+        const reminderTime = new Date(reminder);
+        if (!task.dataset.alerted && reminderTime <= now) {
+            alert("Reminder: " + task.dataset.taskTitle);
+            task.dataset.alerted = "true";
+        }
+    });
+}
+
+setInterval(checkReminders, 1000);
+</script>
+
+{% endblock %}
