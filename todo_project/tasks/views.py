@@ -46,3 +46,4 @@ def toggle_complete(request, task_id):
     task.is_completed = not task.is_completed
     task.save()
     return redirect('task_list')
+
